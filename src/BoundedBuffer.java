@@ -2,7 +2,7 @@ class BoundedBuffer<T> {
     private final T[] buffer;
     private int count = 0;
     private int in = 0;
-    private int out = -1;
+    private int out = 0;
 
     @SuppressWarnings("unchecked")
     public BoundedBuffer(int size) {
@@ -10,41 +10,34 @@ class BoundedBuffer<T> {
     }
 
     public synchronized void put(T item) throws InterruptedException {
-        System.out.println();
         while (count == buffer.length) {
             System.out.println("PUT WAIT");
             wait();
         }
 
-        System.out.println("\nPUT item");
         buffer[in] = item;
+        in = (in + 1) % buffer.length;
         count++;
-        in++;
-        out++;
+        System.out.printf("PUT item. COUNT: %d\n", count);
 
-        System.out.printf("After put item:\nCOUNT: %d\nIN: %d\nOUT: %d\n", count, in, out);
-
+        System.out.println();
         notifyAll();
     }
 
     public synchronized T take() throws InterruptedException {
-        System.out.println();
         while (count == 0) {
             System.out.println("TAKE WAIT");
             wait();
         }
 
-        System.out.println("\nTAKE item");
         T item = buffer[out];
+        out = (out + 1) % buffer.length;
         count--;
-        in--;
-        out--;
 
-        System.out.println("Took: " + item);
-        System.out.printf("After take item:\nCOUNT: %d\nIN: %d\nOUT: %d\n", count, in, out);
+        System.out.printf("\nTAKE item: %s.\n After take item. COUNT: %d\n", item, count);
 
         notifyAll();
-
+        System.out.println();
         return item;
     }
 }
